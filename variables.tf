@@ -1,82 +1,99 @@
 variable "project_id" {
-    description = "The project ID where resources will be created."
-    type        = string
+  description = "GCP project ID"
+  type        = string
 }
+
 variable "region" {
-    description = "Project Region"
-    type        = string
-
+  description = "GCP region"
+  type        = string
 }
+
 variable "vpc_name" {
-    description = "VPC_Name"
-    type        = string
+  description = "VPC name"
+  type        = string
 }
+
 variable "subnet_name" {
-    description = "The name of the subnet"
-    type        = string
+  description = "Subnet name"
+  type        = string
 }
+
 variable "cidr_block" {
-    description = "The CIDR block for the subnet."
-    type        = string
-
-
+  description = "CIDR for subnet"
+  type        = string
 }
-variable "account_id" {}
-
 
 variable "sa_name" {
-  description = "Service Account Name"
+  description = "Service account ID (used as sa_name in module)"
   type        = string
 }
 
 variable "roles" {
-  description = "List of IAM roles for the service account"
+  description = "IAM roles to bind to the SA"
   type        = list(string)
 }
 
+variable "db_instance_name" {
+  description = "Cloud SQL instance name"
+  type        = string
+}
+
 variable "db_tier" {
-    description = "sql instance type"
-    type        = string
-
-}
-variable "db_instance_name"{
-    description = "Data base instance name"
-    type        = string
+  description = "Cloud SQL tier"
+  type        = string
 }
 
-variable "db_user" {
-    description = "Data base user name"
-    type        = string
-
-}
-variable "db_password" {
-    description = "Data base password"
-    type        = string
-
-}
 
 variable "bucket_name" {
-    description = "Bucket name"
-    type        = string
-
+  description = "GCS bucket name for DAGs & logs"
+  type        = string
 }
 
-variable "location" {}
+variable "location" {
+  description = "GCS bucket location"
+  type        = string
+}
 
 variable "vm_name" {
-    description = "VM instance name"
-    type        = string
-   
+  description = "Compute instance name"
+  type        = string
 }
+
 variable "machine_type" {
-    description = "VM instance machine type"
-    type        = string
+  description = "Compute instance machine type"
+  type        = string
 }
+
 variable "zone" {
-    description = "VM instance zone"
-    type        = string
+  description = "Compute instance zone"
+  type        = string
 }
+
 variable "vm_image" {
-    description = "VM instance Image"
-    type        = string
+  description = "Compute instance boot image"
+  type        = string
 }
+
+variable "db_password_secret_id" {
+  description = "Secret Manager Secret ID for Database Password"
+  type        = string
+}
+
+variable "db_username_secret_id" {
+  description = "Secret Manager Secret ID for Database Username"
+  type        = string
+}
+variable "db_password" {
+  description = "Cloud SQL password"
+  type        = string
+  sensitive   = true
+}
+variable "db_user" {
+  description = "Database username"
+  type        = string
+}
+variable "vm_disk_size_gb" {
+  description = "Boot disk size for the Airflow VM, in GB"
+  type        = number
+}
+
