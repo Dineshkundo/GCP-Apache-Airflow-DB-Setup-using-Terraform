@@ -24,7 +24,8 @@ cd $REPO_NAME
 # Create GCS backend bucket if needed (must be done before terraform init)
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
-  gcloud storage buckets create gs://"$BACKEND_BUCKET" \
+  # Fixed this line - removed gs:// prefix
+  gcloud storage buckets create "$BACKEND_BUCKET" \
     --project="$PROJECT_ID" \
     --location="$REGION" \
     --uniform-bucket-level-access
