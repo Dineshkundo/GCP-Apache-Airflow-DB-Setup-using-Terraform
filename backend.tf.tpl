@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "airflow-terraform-bkt"
+    bucket = "__BACKEND_BUCKET__"
     prefix = "airflow-gcp/state"
   }
 }
