@@ -25,10 +25,13 @@ if [[ -z "$BACKEND_BUCKET" ]]; then
   exit 1
 fi
 
+# Set the gcloud project config early
+gcloud config set project "$PROJECT_ID"
+
 # Check & create backend bucket BEFORE terraform init
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating backend GCS bucket: $BACKEND_BUCKET"
-  gcloud storage buckets create "gs://$BACKEND_BUCKET" \
+  gcloud storage buckets create "$BACKEND_BUCKET" \
     --project="$PROJECT_ID" \
     --location="$REGION" \
     --uniform-bucket-level-access
