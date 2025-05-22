@@ -1,4 +1,4 @@
-project_id  = "etl-test-project-450918"
+project_id  = "etl-test-project-450918"  #Modify your project name please
 region      = "us-central1"
 vpc_name    = "airflow-vpct"
 subnet_name = "airflow-subnett"
