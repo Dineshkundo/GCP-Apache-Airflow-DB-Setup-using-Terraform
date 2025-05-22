@@ -19,9 +19,9 @@ else
   echo "📥 Cloning repository..."
   git clone https://github.com/Dineshkundo/$REPO_NAME.git
 fi
-cd "$REPO_NAME"
+cd $REPO_NAME
 
-# Create GCS backend bucket if it doesn't exist
+# Create GCS backend bucket if needed (before init)
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
   gsutil mb -p "$PROJECT_ID" -l "$REGION" "gs://$BACKEND_BUCKET"
@@ -29,15 +29,15 @@ else
   echo "✅ Backend bucket $BACKEND_BUCKET already exists"
 fi
 
-# Generate backend.tf from backend.tf.tpl
+# Generate backend.tf from template
 echo "🛠 Generating backend.tf from template..."
 sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
 
-# Run terraform init with backend configuration
+# Initialize Terraform with GCS backend
 echo "🚧 Initializing Terraform with backend..."
 terraform init -reconfigure
 
-# Generate terraform.tfvars
+# Generate terraform.tfvars dynamically
 echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 project_id  = "$PROJECT_ID"
@@ -70,9 +70,9 @@ zone         = "$ZONE"
 vm_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
 EOF
 
-# .gitignore local-only files
+# Optional: ignore local files from being pushed to Git accidentally
 echo -e ".terraform/\nterraform.tfvars" > .gitignore
 
-# Apply the Terraform configuration
+# Apply Terraform configuration
 echo "🚀 Applying Terraform configuration..."
 terraform apply -auto-approve
