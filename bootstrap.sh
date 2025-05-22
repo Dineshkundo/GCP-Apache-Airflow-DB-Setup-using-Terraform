@@ -12,20 +12,23 @@ read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " 
 
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
 
-# Clone the repo if it doesn't already exist
-if [ -d "$REPO_NAME" ]; then
-  echo "📁 Directory $REPO_NAME already exists. Skipping clone."
-else
+# Clone repo if missing
+if [ ! -d "$REPO_NAME" ]; then
   echo "📥 Cloning repository..."
   git clone https://github.com/Dineshkundo/$REPO_NAME.git
 fi
 cd $REPO_NAME
 
-# Create GCS backend bucket if needed (must be done before terraform init)
+# Validate bucket name
+if [[ -z "$BACKEND_BUCKET" ]]; then
+  echo "❌ Error: BACKEND_BUCKET is empty. Exiting..."
+  exit 1
+fi
+
+# Check & create backend bucket BEFORE terraform init
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
-  echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
-  # Fixed this line - removed gs:// prefix
-  gcloud storage buckets create "$BACKEND_BUCKET" \
+  echo "📦 Creating backend GCS bucket: $BACKEND_BUCKET"
+  gcloud storage buckets create "gs://$BACKEND_BUCKET" \
     --project="$PROJECT_ID" \
     --location="$REGION" \
     --uniform-bucket-level-access
@@ -38,21 +41,18 @@ else
   echo "✅ Backend bucket $BACKEND_BUCKET already exists"
 fi
 
-# Validate BACKEND_BUCKET
-if [[ -z "$BACKEND_BUCKET" ]]; then
-  echo "❌ Error: BACKEND_BUCKET is empty. Exiting..."
-  exit 1
-fi
-
+# Generate backend.tf for Terraform backend config
 echo "🛠 Generating backend.tf from template..."
 sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
 
 echo "📄 backend.tf content:"
 cat backend.tf
 
+# Initialize Terraform with backend (now safe because bucket exists)
 echo "🚧 Initializing Terraform with backend..."
 terraform init -reconfigure
 
+# Create terraform.tfvars
 echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 project_id  = "$PROJECT_ID"
@@ -85,7 +85,9 @@ zone         = "$ZONE"
 vm_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
 EOF
 
+# Add ignore files
 echo -e ".terraform/\nterraform.tfvars" > .gitignore
 
+# Apply Terraform config
 echo "🚀 Applying Terraform configuration..."
 terraform apply -auto-approve
