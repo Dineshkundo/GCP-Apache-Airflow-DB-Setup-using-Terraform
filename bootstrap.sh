@@ -41,7 +41,7 @@ mv backend.tf.bak backend.tf
 
 # Reconfigure backend with GCS
 echo "🔁 Reconfiguring Terraform backend..."
-terraform init -migrate-state -reconfigure
+terraform init -reconfigure
 
 # Generate terraform.tfvars dynamically
 echo "📝 Creating terraform.tfvars..."
