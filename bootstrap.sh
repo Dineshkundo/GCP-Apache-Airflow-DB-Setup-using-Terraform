@@ -12,12 +12,16 @@ read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " 
 
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
 
-# Clone the repo
-echo "📥 Cloning repository..."
-git clone https://github.com/Dineshkundo/$REPO_NAME.git
+# Clone the repo if it doesn't already exist
+if [ -d "$REPO_NAME" ]; then
+  echo "📁 Directory $REPO_NAME already exists. Skipping clone."
+else
+  echo "📥 Cloning repository..."
+  git clone https://github.com/Dineshkundo/$REPO_NAME.git
+fi
 cd $REPO_NAME
 
-# Generate backend.tf from template inside repo
+# Generate backend.tf from template
 echo "🛠 Generating backend.tf from template..."
 sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
 
@@ -76,6 +80,9 @@ zone         = "$ZONE"
 vm_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
 EOF
 
-# Apply Terraform
+# Optional: ignore local files from being pushed to Git accidentally
+echo -e ".terraform/\nterraform.tfvars" > .gitignore
+
+# Apply Terraform configuration
 echo "🚀 Applying Terraform configuration..."
 terraform apply -auto-approve
