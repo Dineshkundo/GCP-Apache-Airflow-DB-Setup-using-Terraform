@@ -38,8 +38,17 @@ else
 fi
 
 # Generate backend.tf from template
+if [[ -z "$BACKEND_BUCKET" ]]; then
+  echo "❌ Error: BACKEND_BUCKET is empty. Exiting..."
+  exit 1
+fi
+
 echo "🛠 Generating backend.tf from template..."
 sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
+
+echo "📄 backend.tf content:"
+cat backend.tf
+
 
 # Initialize Terraform with GCS backend
 echo "🚧 Initializing Terraform with backend..."
