@@ -12,32 +12,32 @@ read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " 
 
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
 
-# Clone the repo if it doesn't exist
+# Clone the repo if it doesn't already exist
 if [ -d "$REPO_NAME" ]; then
   echo "📁 Directory $REPO_NAME already exists. Skipping clone."
 else
   echo "📥 Cloning repository..."
   git clone https://github.com/Dineshkundo/$REPO_NAME.git
 fi
-cd $REPO_NAME
+cd "$REPO_NAME"
 
-# Generate backend.tf from template
-echo "🛠 Generating backend.tf from template..."
-sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
-
-# Create GCS backend bucket if needed BEFORE terraform init
-if ! gsutil ls -b gs://$BACKEND_BUCKET &> /dev/null; then
+# Create GCS backend bucket if it doesn't exist
+if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
-  gsutil mb -p "$PROJECT_ID" -l "$REGION" gs://$BACKEND_BUCKET
+  gsutil mb -p "$PROJECT_ID" -l "$REGION" "gs://$BACKEND_BUCKET"
 else
   echo "✅ Backend bucket $BACKEND_BUCKET already exists"
 fi
 
-# Initialize Terraform with backend configured
+# Generate backend.tf from backend.tf.tpl
+echo "🛠 Generating backend.tf from template..."
+sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
+
+# Run terraform init with backend configuration
 echo "🚧 Initializing Terraform with backend..."
 terraform init -reconfigure
 
-# Generate terraform.tfvars dynamically
+# Generate terraform.tfvars
 echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 project_id  = "$PROJECT_ID"
@@ -70,9 +70,9 @@ zone         = "$ZONE"
 vm_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
 EOF
 
-# Optional: ignore local files from being pushed to Git accidentally
+# .gitignore local-only files
 echo -e ".terraform/\nterraform.tfvars" > .gitignore
 
-# Apply Terraform configuration
+# Apply the Terraform configuration
 echo "🚀 Applying Terraform configuration..."
 terraform apply -auto-approve
