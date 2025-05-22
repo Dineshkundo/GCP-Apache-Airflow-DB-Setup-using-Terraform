@@ -24,7 +24,7 @@ cd $REPO_NAME
 # Create GCS backend bucket if needed (must be done before terraform init)
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
-  gcloud storage buckets create "$BACKEND_BUCKET" \
+  gcloud storage buckets create gs://"$BACKEND_BUCKET" \
     --project="$PROJECT_ID" \
     --location="$REGION" \
     --uniform-bucket-level-access
@@ -37,7 +37,7 @@ else
   echo "✅ Backend bucket $BACKEND_BUCKET already exists"
 fi
 
-# Generate backend.tf from template
+# Validate BACKEND_BUCKET
 if [[ -z "$BACKEND_BUCKET" ]]; then
   echo "❌ Error: BACKEND_BUCKET is empty. Exiting..."
   exit 1
@@ -49,12 +49,9 @@ sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
 echo "📄 backend.tf content:"
 cat backend.tf
 
-
-# Initialize Terraform with GCS backend
 echo "🚧 Initializing Terraform with backend..."
 terraform init -reconfigure
 
-# Generate terraform.tfvars dynamically
 echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 project_id  = "$PROJECT_ID"
@@ -87,9 +84,7 @@ zone         = "$ZONE"
 vm_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
 EOF
 
-# Optional: ignore local files from being pushed to Git accidentally
 echo -e ".terraform/\nterraform.tfvars" > .gitignore
 
-# Apply Terraform configuration
 echo "🚀 Applying Terraform configuration..."
 terraform apply -auto-approve
