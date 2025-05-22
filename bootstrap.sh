@@ -10,7 +10,6 @@ read -p "Enter your GCP Zone (e.g., us-central1-a): " ZONE
 read -p "Enter a name for the Terraform GCS backend bucket (e.g., airflow-tf-state-123): " BACKEND_BUCKET
 read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " DAG_BUCKET
 
-# Derived vars
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
 
 # Clone the repo
@@ -18,7 +17,11 @@ echo "📥 Cloning repository..."
 git clone https://github.com/Dineshkundo/$REPO_NAME.git
 cd $REPO_NAME
 
-# Disable backend temporarily to allow local init
+# Generate backend.tf from template inside repo
+echo "🛠 Generating backend.tf from template..."
+sed "s/__BACKEND_BUCKET__/$BACKEND_BUCKET/" backend.tf.tpl > backend.tf
+
+# Temporarily move backend.tf to allow local init
 mv backend.tf backend.tf.bak
 
 # Initialize Terraform locally
@@ -36,11 +39,11 @@ fi
 # Restore backend.tf
 mv backend.tf.bak backend.tf
 
-# Reconfigure backend
-echo "🔁 Reconfiguring backend..."
+# Reconfigure backend with GCS
+echo "🔁 Reconfiguring Terraform backend..."
 terraform init -migrate-state -reconfigure
 
-# Generate terraform.tfvars interactively
+# Generate terraform.tfvars dynamically
 echo "📝 Creating terraform.tfvars..."
 cat > terraform.tfvars <<EOF
 project_id  = "$PROJECT_ID"
