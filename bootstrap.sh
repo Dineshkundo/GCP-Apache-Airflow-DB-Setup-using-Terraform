@@ -7,7 +7,17 @@ echo "🌀 Starting Apache Airflow GCP Terraform Setup..."
 read -p "Enter your GCP Project ID: " PROJECT_ID
 read -p "Enter your GCP Region (e.g., us-central1): " REGION
 read -p "Enter your GCP Zone (e.g., us-central1-a): " ZONE
-read -p "Enter a name for the Terraform GCS backend bucket (e.g., airflow-tf-state-123): " BACKEND_BUCKET
+
+# Prompt and validate BACKEND_BUCKET - retry until non-empty
+while true; do
+  read -p "Enter a name for the Terraform GCS backend bucket (e.g., airflow-tf-state-123): " BACKEND_BUCKET
+  if [[ -z "$BACKEND_BUCKET" ]]; then
+    echo "❌ Backend bucket name cannot be empty. Please try again."
+  else
+    break
+  fi
+done
+
 read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " DAG_BUCKET
 
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
@@ -19,13 +29,7 @@ if [ ! -d "$REPO_NAME" ]; then
 fi
 cd $REPO_NAME
 
-# Validate bucket name
-if [[ -z "$BACKEND_BUCKET" ]]; then
-  echo "❌ Error: BACKEND_BUCKET is empty. Exiting..."
-  exit 1
-fi
-
-# Check & create backend bucket BEFORE terraform init
+# Check if backend bucket exists, else create it
 if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
   echo "📦 Creating backend GCS bucket: $BACKEND_BUCKET"
   gcloud storage buckets create "gs://$BACKEND_BUCKET" \
