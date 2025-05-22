@@ -12,13 +12,19 @@ read -p "Enter a name for the DAGs/logs bucket (e.g., airflow-dags-logs-123): " 
 
 REPO_NAME="GCP-Apache-Airflow-DB-Setup-using-Terraform"
 
-# Clone the repo if it doesn't already exist
-if [ -d "$REPO_NAME" ]; then
-  echo "📁 Directory $REPO_NAME already exists. Skipping clone."
+# Create GCS backend bucket if needed
+if ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; then
+  echo "📦 Creating GCS backend bucket: $BACKEND_BUCKET"
+  gcloud storage buckets create "$BACKEND_BUCKET" --project="$PROJECT_ID" --location="$REGION" --uniform-bucket-level-access
+  echo "⏳ Waiting for bucket to be fully available..."
+  while ! gsutil ls -b "gs://$BACKEND_BUCKET" &> /dev/null; do
+    sleep 2
+  done
+  echo "✅ Bucket created and verified."
 else
-  echo "📥 Cloning repository..."
-  git clone https://github.com/Dineshkundo/$REPO_NAME.git
+  echo "✅ Backend bucket $BACKEND_BUCKET already exists"
 fi
+
 cd $REPO_NAME
 
 # Create GCS backend bucket if needed (before init)
